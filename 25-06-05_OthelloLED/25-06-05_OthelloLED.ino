@@ -194,8 +194,8 @@ void loop() {
 
     if(playbackNext != ""){
       int index = playbackNext.indexOf("/");
-      long timestamp = playbackNext.substring(0, index).toInt();
-      int key = playbackNext.substring(index+1).toInt();
+      nextNote.timestamp = playbackNext.substring(0, index).toInt();
+      nextNote.key = playbackNext.substring(index+1).toInt();
     }
   }
 
