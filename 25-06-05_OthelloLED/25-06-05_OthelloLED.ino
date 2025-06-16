@@ -7,6 +7,10 @@ DFRobotDFPlayerMini myDFPlayer;
 bool jamMode = false;
 bool printDebug = false;
 bool winDebug = false;
+String playbackTrack = "";
+String playbackNext = "";
+bool playback = false;
+long playbackTimer = 0;
 
 #define ROW_NUM 8
 #define COL_NUM 8
@@ -42,10 +46,10 @@ int board[ROW_NUM][COL_NUM];
 int score[2] = {0, 0};
 bool validDirs[8];
 bool playing = true;
-int recordTimer = 0;
+long recordTimer = 0;
 bool winBlink = false;
 
-int winBlinkTimer = 0;
+long winBlinkTimer = 0;
 #define WINBLINKINT 300
 #define WINBLINKDUR 5000
 int winBlinkStatus = 0;
@@ -105,7 +109,7 @@ void loop() {
   int keyRow;
   int keyCol;
 
-  if (key){
+  if (!playback && key){
     intKey = (int) key;
     intKey -= 32;
 
@@ -130,18 +134,19 @@ void loop() {
         if(checkVictory() || winDebug){
           winDebug = false;
 
-          Serial.print("Win for ");
+          Serial.print("WIN||");
           playing = false;
           if(score[0] > score[1]){ //p1 victory
             winBlinking(1);
-            Serial.println( "red");
+            Serial.println( "1");
           }
-          else if(score[1] > score [0]){ //p2 victory
+          else if(score[0] < score [1]){ //p2 victory
             winBlinking(2);
-            Serial.println("blue");
+            Serial.println("2");
           }
           else{ //draw
             winBlinking(0);
+            Serial.println("0");
           }
         }
         else{
@@ -163,11 +168,16 @@ void loop() {
       myDFPlayer.playFolder(1, intKey+1);
       if(recording){
         int timestamp = millis() - recordTimer;
-        Serial.print("TIME||");
-        Serial.println(timestamp);
+        String msg = timestamp + "/" + intKey + "x";
         Serial.print("KEY||");
-        Serial.println(intKey);
+        Serial.println(msg);
       }
+    }
+  }
+  else{ //playback
+    if((playbackNext == "") && (playbackTrack != "")){ 
+      int index = playbackTrack.indexOf("x");
+      playbackNext = playbackTrack.substring(0, index);
     }
   }
 
@@ -190,7 +200,16 @@ void loop() {
       }
       else if(value == "OFF"){
         recording = false; 
-      }
+      } 
+    }
+    else if(msg == "PLAYBACK"){
+      playbackTrack = value;
+
+      playback = true;
+      playbackTimer = millis();
+    }
+    else if(msg == "START"){
+      Serial.println("ACK");
     }
 
     receivedString.trim();
