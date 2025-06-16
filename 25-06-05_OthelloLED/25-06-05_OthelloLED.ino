@@ -4,11 +4,18 @@
 
 DFRobotDFPlayerMini myDFPlayer;
 
+struct Note {
+  int key;
+  long timestamp;
+};
+
 bool jamMode = false;
 bool printDebug = false;
 bool winDebug = false;
 String playbackTrack = "";
 String playbackNext = "";
+Note nextNote;
+
 bool playback = false;
 long playbackTimer = 0;
 
@@ -46,6 +53,7 @@ int board[ROW_NUM][COL_NUM];
 int score[2] = {0, 0};
 bool validDirs[8];
 bool playing = true;
+bool recording = false;
 long recordTimer = 0;
 bool winBlink = false;
 
@@ -167,8 +175,11 @@ void loop() {
     else if(jamMode){
       myDFPlayer.playFolder(1, intKey+1);
       if(recording){
-        int timestamp = millis() - recordTimer;
-        String msg = timestamp + "/" + intKey + "x";
+        long timestamp = millis() - recordTimer;
+        String msg = String(timestamp);
+        msg += "/";
+        msg += String(intKey);
+        msg += "x";
         Serial.print("KEY||");
         Serial.println(msg);
       }
@@ -178,6 +189,13 @@ void loop() {
     if((playbackNext == "") && (playbackTrack != "")){ 
       int index = playbackTrack.indexOf("x");
       playbackNext = playbackTrack.substring(0, index);
+      playbackTrack = playbackTrack.substring(index+1);
+    }
+
+    if(playbackNext != ""){
+      int index = playbackNext.indexOf("/");
+      long timestamp = playbackNext.substring(0, index).toInt();
+      int key = playbackNext.substring(index+1).toInt();
     }
   }
 
